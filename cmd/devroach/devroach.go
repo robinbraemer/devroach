@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/robinbraemer/devroach"
 	"github.com/urfave/cli/v2"
+	"log/slog"
 	"os"
 	"os/signal"
 )
@@ -31,13 +33,19 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			_, clean, err := devroach.NewPool(c.Context, os.DirFS(dir), globs.Value()...)
+			log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+				Level:     slog.Level(-10),
+				AddSource: true,
+			}))
+			ctx := logr.NewContextWithSlogLogger(c.Context, log)
+
+			_, clean, err := devroach.NewPool(ctx, os.DirFS(dir), globs.Value()...)
 			if err != nil {
 				return err
 			}
 			defer clean()
 
-			ctx, cancel := signal.NotifyContext(c.Context, os.Interrupt)
+			ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 			defer cancel()
 			<-ctx.Done()
 			return nil

@@ -18,13 +18,12 @@ func MigrateT(t *testing.T, pool *pgxpool.Pool, migrationsFS fs.FS, globs ...str
 
 // Migrate runs all migrations against the given connection.
 func Migrate(ctx context.Context, pool *pgxpool.Pool, migrationsFS fs.FS, globs ...string) error {
-	all, err := allContents(migrationsFS, globs...)
+	log := logr.FromContextOrDiscard(ctx).V(10)
+	all, err := allContents(log, migrationsFS, globs...)
 	if err != nil {
 		return err
 	}
-	if len(all) != 0 {
-		logr.FromContextOrDiscard(ctx).Info("applying migrations", "count", len(all))
-	}
+	log.Info("applying migrations", "count", len(all))
 	for _, sql := range all {
 		_, err = pool.Exec(ctx, sql)
 		if err != nil {
@@ -34,7 +33,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool, migrationsFS fs.FS, globs 
 	return nil
 }
 
-func allContents(migrationsFS fs.FS, globs ...string) ([]string, error) {
+func allContents(log logr.Logger, migrationsFS fs.FS, globs ...string) ([]string, error) {
 	var contents []string
 	for _, glob := range globs {
 		matches, err := fs.Glob(migrationsFS, glob)
@@ -46,6 +45,7 @@ func allContents(migrationsFS fs.FS, globs ...string) ([]string, error) {
 			if err != nil {
 				return nil, err
 			}
+			log.Info("found migration file", "file", file)
 			contents = append(contents, string(c))
 		}
 	}
