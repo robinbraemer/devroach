@@ -6,8 +6,8 @@
 To run a CockroachDB instance locally and run migrations, you can install `devroach` using the following command:
 
 ```bash
-go run github.com/robinbraemer/devroach
+go run github.com/robinbraemer/devroach@latest
 # or
-go install github.com/robinbraemer/devroach
+go install github.com/robinbraemer/devroach@latest
 devroach -h
 ```
