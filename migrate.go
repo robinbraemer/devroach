@@ -19,6 +19,9 @@ func MigrateT(t *testing.T, pool *pgxpool.Pool, migrationsFS fs.FS, globs ...str
 // Migrate runs all migrations against the given connection.
 func Migrate(ctx context.Context, pool *pgxpool.Pool, migrationsFS fs.FS, globs ...string) error {
 	log := logr.FromContextOrDiscard(ctx).V(10)
+	if migrationsFS == nil {
+		return nil
+	}
 	all, err := allContents(log, migrationsFS, globs...)
 	if err != nil {
 		return err
